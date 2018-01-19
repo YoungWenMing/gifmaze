@@ -78,7 +78,7 @@ anim.pause(200)
 anim.run(prim, maze, speed=30, delay=5, trans_index=None, cmap={0: 0, 1: 1}, min_code_length=2, start=(0, 0))
 anim.pause(500)
 ```
-Here `speed` controls the speed of the animation, `delay` controls the delay between successive frames, `trans_index` is the transparent color index, `min_code_length` is the minimum code length for encoding the animation into frames, `start` is the starting cell for running Prim's algorithm (it the position of the cell in the maze, not a pixel in the image). `cmap` controls how the cells are mapped to colors, i.e. {cell: color}. `cmap={0: 0, 1: 1}` means the cells have value 0 (the walls) are colored with the 0-indexed color (black) and cells have value 1 (the tree) are colored with the 1-indexed color (white).
+Here `speed` controls the speed of the animation, `delay` controls the delay between successive frames, `trans_index` is the transparent color index, `min_code_length` is the minimum code length for encoding the animation into frames, `start` is the starting cell for running Prim's algorithm (it's the position of the cell in the maze, not a pixel in the image). `cmap` controls how the cells are mapped to colors, i.e. {cell: color}. `cmap={0: 0, 1: 1}` means the cells have value 0 (the walls) are colored with the 0-indexed color (black) and cells have value 1 (the tree) are colored with the 1-indexed color (white).
 
 Note I have padded two delay frames to help to see the animation clearly.
 
