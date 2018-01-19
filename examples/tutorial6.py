@@ -5,16 +5,11 @@ It has full 256 colors in the global color table.
 """
 from colorsys import hls_to_rgb
 import gifmaze as gm
-from gifmaze.algorithms import wilson, bfs
-from gifmaze.utils import generate_text_mask
+from gifmaze.algorithms import random_dfs, bfs
 
 
-# firstly define the size and color_depth of the image.
-width, height = 600, 400
-color_depth = 8
-
-# define a surface to draw on.
-surface = gm.GIFSurface(width, height, color_depth, bg_color=0)
+width, height = 605, 405
+surface = gm.GIFSurface(width, height, bg_color=0)
 
 palette = [0, 0, 0, 200, 200, 200, 255, 0, 255]
 for i in range(256):
@@ -23,50 +18,35 @@ for i in range(256):
 
 surface.set_palette(palette)
 
-# next define an animation environment to run the algorithm.
 anim = gm.Animation(surface)
+mask = gm.generate_text_mask((width, height), 'UST', 'ubuntu.ttf', 300)
+maze = gm.Maze(119, 79, mask=mask).scale(5).translate((5, 5))
 
-# set the speed, delay, and transparent color we want.
-anim.set_control(speed=50, delay=1, trans_index=3)
+# pause two seconds, get ready!
+anim.pause(200)
 
-# now we need to add a maze instance.
-# we generate a mask image first: (you may also use a image file, provided
-# that it preserves the connectivity of the grid)
-mask = generate_text_mask(surface.size, 'UST', 'ubuntu.ttf', 300)
+# run the maze generation algorithm.
+anim.run(random_dfs, maze, speed=15, delay=5, min_code_length=2,
+         cmap={0: 0, 1: 1, 2: 2, 3: 3}, trans_index=None, start=(0, 0))
 
-# `region=5` means the maze is padded with border of 5 pixels.
-maze = anim.create_maze_in_region(cell_size=5, region=5, mask=mask)
-
-# in the first algorithm only 4 colors occur in the image, so we can use
-# a smaller minimum code length.
-surface.set_lzw_compress(2)
-# pad two seconds delay, get ready!
-anim.pad_delay_frame(200)
-
-# the animation runs here.
-wilson(maze, root=(0, 0))
-
-# pad three seconds delay to see the result clearly.
-anim.pad_delay_frame(300)
-
-# now we run the maze solving algorithm.
-# this time we use full 256 colors, hence the minimum code length is 8.
-surface.set_lzw_compress(8)
-
-# the tree and wall are unchanged throughout the maze solving algorithm hence
-# it's safe to use 0 as the transparent color and color the wall and tree transparent.
-anim.set_colormap({0: 0, 1: 0, 2: 2, 3: 3})
-anim.set_control(speed=30, delay=5, trans_index=0)
+# pause three seconds to see the result clearly.
+anim.pause(300)
+surface.save('tutorial6-1.gif')
 
 # run the maze solving algorithm.
-bfs(maze,
-    start=(0, 0),
-    end=(maze.size[0] - 1, maze.size[1] - 1))
+# the tree and wall are unchanged throughout the maze solving algorithm hence
+# it's safe to use 0 as the transparent color.
+# In the bfs algorithm the cells are marked by their distance to the starting cell,
+# so we must define our color map dict first.
+# The idea is to map the values of the cells into range 0-255.
+cmap = {i: max(i % 256, 3) for i in range(len(maze.cells))}
+cmap.update({0: 0, 1: 0, 2: 2})
+anim.run(bfs, maze, speed=30, delay=5, min_code_length=8, cmap=cmap,
+         trans_index=0, start=(0, 0), end=(maze.width - 1, maze.height - 1))
 
-# pad five seconds delay to see the path clearly.
-anim.pad_delay_frame(500)
+# pause five seconds to see the path clearly.
+anim.pause(500)
 
 # save the result.
-surface.save('wilson_bfs.gif')
-
+surface.save('tutorial6-2.gif')
 surface.close()

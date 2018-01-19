@@ -77,7 +77,8 @@ class DataBlock(object):
 
 class Compression(object):
     """
-    The Lempel-Ziv-Welch compression algorithm used by the GIF89a specification.
+    Each instance of this class is a function that implements the
+    Lempel-Ziv-Welch compression algorithm used by the GIF89a specification.
     """
 
     def __init__(self, min_code_length):
@@ -144,65 +145,94 @@ class Compression(object):
         return bytearray([self._min_code_length]) + self._stream.dump_bytes() + bytearray([0])
 
 
-def screen_descriptor(width, height, color_depth):
+class GIFEncoder(object):
     """
-    This block specifies both the size of the image and its global color table.
+    This class contains several methods for encoding GIF files.
     """
-    byte = 0b10000000 | (color_depth - 1) | (color_depth - 1) << 4
-    return pack('<6s2H3B', b'GIF89a', width, height, byte, 0, 0)
+    
+    @staticmethod
+    def screen_descriptor(width, height, color_depth):
+        """
+        This block specifies both the size of the image and its global color table.
+        """
+        byte = 0b10000000 | (color_depth - 1) | (color_depth - 1) << 4
+        return pack('<6s2H3B', b'GIF89a', width, height, byte, 0, 0)
+  
+    @staticmethod
+    def loop_control_block(loop):
+        """
+        This block specifies the number of loops (0 means loop infinitely).
+        """
+        return pack('<3B8s3s2BHB', 0x21, 0xFF, 11, b'NETSCAPE', b'2.0', 3, 1, loop, 0)
+    
+    @staticmethod
+    def graphics_control_block(delay, trans_index=None):
+        """
+        This block specifies the delay and transparent color of the coming frame.
+        `trans_index=None` means no transparent color.
+        For static frames this block is not needed.
+        """
+        if trans_index is None:
+            return pack("<4BH2B", 0x21, 0xF9, 4, 0b00000100, delay, 0, 0)
+        else:
+            return pack("<4BH2B", 0x21, 0xF9, 4, 0b00000101, delay, trans_index, 0)
+    
+    @staticmethod
+    def image_descriptor(left, top, width, height, byte=0):
+        """
+        This block specifies the position of the coming frame (relative to the window)
+        and whether it has a local color table or not.
+        """
+        return pack('<B4HB', 0x2C, left, top, width, height, byte)
 
+    @classmethod
+    def rectangle(cls, left, top, width, height, color):
+        """
+        A rectangle painted with a given color.
+        """
+        descriptor = cls.image_descriptor(left, top, width, height)
+        data = Compression(2)([color] * width * height)
+        return descriptor + data
+    
+    @classmethod
+    def pause(cls, delay, trans_index):
+        """
+        A 1x1 invisible frame that can be used for padding delay time
+        in an animation.
+        """
+        control = cls.graphics_control_block(delay, trans_index)
+        pixel1x1 = cls.rectangle(0, 0, 1, 1, trans_index)
+        return control + pixel1x1
 
-def loop_control_block(loop):
-    """
-    This block specifies the number of loops (0 means loop infinitely).
-    """
-    return pack('<3B8s3s2BHB', 0x21, 0xFF, 11, b'NETSCAPE', b'2.0', 3, 1, loop, 0)
+    @classmethod
+    def parse_image(cls, img):
+        """
+        Parse a gif image and get its palette and pixels. `image` must be an instance of
+        PIL.Image.Image class and of the .gif format.
+        """
+        data = list(img.getdata())
+        colors = []
+        indices = []
+        count = 0
 
+        for c in data:
+            if c not in colors:
+                colors.append(c)
+                indices.append(count)
+                count += 1
+            else:
+                i = colors.index(c)
+                indices.append(i)
 
-def graphics_control_block(delay, trans_index=None):
-    """
-    This block specifies the delay and transparent color of the coming frame.
-    `trans_index=None` means no transparent color.
-    For static frames this block is not added.
-    """
-    if trans_index is None:
-        return pack("<4BH2B", 0x21, 0xF9, 4, 0b00000100, delay, 0, 0)
-    else:
-        return pack("<4BH2B", 0x21, 0xF9, 4, 0b00000101, delay, trans_index, 0)
+        palette = []
+        for c in colors:
+            palette += c
+            
+        # here we do not bother about how many colors are actually in the image,
+        # we simply use full 256 colors.
+        if len(palette) < 3 * 256:
+            palette += [0] * (3 * 256 - len(palette))
 
-
-def image_descriptor(left, top, width, height, byte=0):
-    """
-    This block specifies the position of the coming frame (relative to the window)
-    and whether it has a local color table or not.
-    """
-    return pack('<B4HB', 0x2C, left, top, width, height, byte)
-
-def global_color_table(color_depth, palette):
-    """
-    Return a valid global color table.
-    The global color table of a GIF image is a 1-d bytearray of the form
-    [r1, g1, b1, r2, g2, b2, ...] with length equals to 2**n where n is
-    the color depth of the image.
-
-    ----------
-    Parameters
-
-    color_depth: color depth of the GIF.
-
-    palette: a list of rgb colors of the format [r1, g1, b1, r2, g2, b2, ...].
-        The number of colors must be greater than or equal to 2**n where n is
-        the color depth. Redundant colors will be discarded.
-    """
-    try:
-        palette = bytearray(palette)
-    except:
-        raise ValueError('Cannot convert palette to bytearray.')
-
-    valid_length = 3 * (1 << color_depth)
-    if len(palette) < valid_length:
-        raise ValueError('Invalid palette length.')
-    if len(palette) > valid_length:
-        palette = palette[:valid_length]
-
-    return palette
+        descriptor = cls.image_descriptor(0, 0, img.size[0], img.size[1], 0b10000111)
+        compressed_data = Compression(8)(indices)
+        return descriptor + bytearray(palette) + compressed_data

@@ -1,41 +1,53 @@
 # -*- coding: utf-8 -*-
 """
-This script shows how to animate an algorithm on a maze.
+This script shows how to run an animation on a maze.
 """
 import gifmaze as gm
 from gifmaze.algorithms import prim
 
 
-# firstly define the size and color_depth of the image.
-width, height = 600, 400
-color_depth = 2
+# size of the image.
+width, height = 605, 405
 
 # define a surface to draw on.
-surface = gm.GIFSurface(width, height, color_depth, bg_color=0)
+surface = gm.GIFSurface(width, height, bg_color=0)
 
-# define the colors of the wall, tree and transparent channel.
-surface.set_palette([0, 0, 0, 255, 255, 255, 255, 0, 255, 0, 0, 0])
+# define the colors of the walls and tree.
+# we use black for walls and white for the tree.
+surface.set_palette([0, 0, 0, 255, 255, 255])
 
 # next define an animation environment to run the algorithm.
 anim = gm.Animation(surface)
 
-# set the speed, delay, and transparent color we want.
-anim.set_control(speed=20, delay=5, trans_index=3)
+# now add a maze into the scene.
+# the size of the maze is 119x79 but it's scaled by 5
+# (so it occupies 595x395 pixels) and is translated 5 pixels
+# to the right and 5 pixels to the bottom (so it's
+# located at the center of the image).
+maze = gm.Maze(119, 79, mask=None).scale(5).translate((5, 5))
 
-# now we need to add a maze instance.
-# `region=8` means the maze is padded with border of 8 pixels.
-maze = anim.create_maze_in_region(cell_size=5, region=8, mask=None)
-
-# pad two seconds delay, get ready!
-anim.pad_delay_frame(200)
+# pause two seconds, get ready!
+anim.pause(200)
 
 # the animation runs here.
-prim(maze, start=(0, 0))
+# `speed` controls the speed of the animation,
+# `delay` controls the delay between successive frames,
+# `trans_index` is the transparent color index,
+# `min_code_length` is the minimum code length for encoding the animation
+# into frames, it's at least 2 and must satisfy
+# 2**min_code_length >= number of colors in the global color table.
+# `start` is the starting cell for running Prim's algorithm. (it's a cell,
+# not a pixel).
+# `cmap` controls how the cells are mapped to colors, i.e. {cell: color}.
+# here `cmap={0: 0, 1: 1}` means the cells have value 0 (the walls) are colored
+# with the 0-indexed color (black), cells have value 1 (the tree) are colored
+# with the 1-indexed color (white).
+anim.run(prim, maze, speed=30, delay=5, trans_index=None,
+         cmap={0: 0, 1: 1}, min_code_length=2, start=(0, 0))
 
-# pad five seconds delay to see the result clearly.
-anim.pad_delay_frame(500)
+# pause five seconds to see the result clearly.
+anim.pause(500)
 
 # save the result.
-surface.save('prim.gif')
-
+surface.save('tutorial4.gif')
 surface.close()

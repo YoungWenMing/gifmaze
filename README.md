@@ -40,50 +40,46 @@ git clone https://github.com/neozhaoliang/gifmaze gifmaze && cd gifmaze && pytho
 
 **A:** Yes! Let me show you with an example:
 
-Firstly we need to declare an `GIFSurface` (similar with `cairo`'s `ImageSurface` class) on which the animations are drawn and which specifies the size of the image and how many colors are available:
+Firstly we need to declare an `GIFSurface` (similar with `cairo`'s `ImageSurface` class) on which the animations are drawn and which specifies the size of the image:
 
 ``` python
 import gifmaze as gm
 
-surface = gm.GIFSurface(width=600, height=400, color_depth=2, bg_color=0)
+surface = gm.GIFSurface(width=600, height=400, bg_color=0)
 ```
-Here `color_depth=2` means there are 2^2=4 colors in the global color table, and `bg_color=0` means the 0-th color in the global color table is used as the background color.
+Here `bg_color=0` means the 0-th color in the global color table is used as the background color.
 
-You may define the global color table at any time except must before you save the image. Let's say it's
+You may define the global color table at any time except must before you save the image and must specify at least one RGB triple in it. Let's say it's
 
 ``` python
-surface.set_palette([0, 0, 0, 255, 255, 255, 255, 0, 255, 0, 0, 0])
+surface.set_palette([0, 0, 0, 255, 255, 255])
 ```
-So the colors available in the image are black, white, magenta and black.
+So the colors available in the image are black and white.
 
 Then we build an environment (similar to `cairo`'s `Context` class) for making animations on top of this surface:
 
 ``` python
 anim = gm.Animation(surface)
 ```
-and we set some control parameters of this animation:
+
+Now we have a gif surface to draw on, an environemnt to run the animation, but we must add a maze before we could run the algorithm.
 
 ``` python
-anim.set_control(speed=20, delay=5, trans_index=3)
+maze = gm.Maze(149, 99, None).scale(4).translate((2, 2))
 ```
-This means "render a frame every 20 steps, set the delay time between successive frames to 0.05 second, and the color of index 3 in the global color table as the transparent channel".
-
-Now we have a gif surface to draw on, an environemnt to control how the animation is rendered, then the last thing is to add a maze to run the algorithm.
-
-``` python
-maze = anim.create_maze_in_region(cell_size=5, region=8, mask=None)
-```
-This creates a maze located at the center of the image with 8 pixels padded at the borders, and each cell in the maze occupies 5x5 pixels in the image.
+This defines a maze of size 149x99 and is scaled by 4 (so it occupies 596x396 pixels) and is translated 2 pixels to the right and 2 pixels to the bottom to make it located at the center of the image.
 
 Now let's run `Prim's algorithm` on this maze:
 
 ``` python
 from gifmaze.algorithms import prim
 
-anim.pad_delay_frame(200)
-prim(maze, start=(0, 0))
-anim.pad_delay_frame(500)
+anim.pause(200)
+anim.run(prim, maze, speed=30, delay=5, trans_index=None, cmap={0: 0, 1: 1}, min_code_length=2, start=(0, 0))
+anim.pause(500)
 ```
+Here `speed` controls the speed of the animation, `delay` controls the delay between successive frames, `trans_index` is the transparent color index, `min_code_length` is the minimum code length for encoding the animation into frames, `start` is the starting cell for running Prim's algorithm (it the position of the cell in the maze, not a pixel in the image). `cmap` controls how the cells are mapped to colors, i.e. {cell: color}. `cmap={0: 0, 1: 1}` means the cells have value 0 (the walls) are colored with the 0-indexed color (black) and cells have value 1 (the tree) are colored with the 1-indexed color (white).
+
 Note I have padded two delay frames to help to see the animation clearly.
 
 That's all! Let's save the animation to a gif file:
@@ -107,7 +103,7 @@ For more information please see this [blog](http://www.pywonderland.com/wilson/)
 
 The lib implemented a simple GIF encoder, and the frames are encoded to a BytesIO file in memory while the algorithm runs. Then one calls the `save()` method to flush the data to the output file.
 
-To implement your own algorithm to animate, you may refer to the examples in `algorithms.py`, the basic idea is to split the algorithm into "atom" steps, set the values of the cells as the algorithm runs and call the `refresh_frame` method in each "atom" step.
+To implement your own algorithm to animate, you may refer to the examples in `algorithms.py`, the basic idea is to split the algorithm into "atom" steps, set the values of the cells as the algorithm runs and check for rendering the frame in each "atom" step.
 
 ## References
 

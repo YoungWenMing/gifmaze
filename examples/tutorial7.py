@@ -8,15 +8,9 @@ in a simple program ...)
 from colorsys import hls_to_rgb
 import gifmaze as gm
 from gifmaze.algorithms import wilson, bfs
-from gifmaze.utils import generate_text_mask
 
 
-# firstly define the size and color_depth of the image.
-width, height = 600, 400
-color_depth = 8
-
-# define a surface to draw on.
-surface = gm.GIFSurface.from_image('teacher.png', color_depth)
+surface = gm.GIFSurface.from_image('teacher.png')
 
 # set the 0-th color to be the same with the blackboard's.
 palette = [52, 51, 50, 200, 200, 200, 255, 0, 255]
@@ -25,56 +19,36 @@ for i in range(256):
     palette += [int(round(255 * x)) for x in rgb]
 
 surface.set_palette(palette)
-
-# next define an animation environment to run the algorithm.
 anim = gm.Animation(surface)
 
-# set the speed, delay, and transparent color we want.
-anim.set_control(speed=50, delay=2, trans_index=3)
+size = (surface.width, surface.height)
+mask = gm.generate_text_mask(size, 'UST', 'ubuntu.ttf', 350)
 
-# add a maze instance.
-mask = generate_text_mask(surface.size, 'UST', 'ubuntu.ttf', 350)
-# specify the region that where the animation is embedded.
-left, top, right, bottom = 66, 47, 540, 343
-maze = anim.create_maze_in_region(cell_size=4,
-                                  region=(left, top, right, bottom),
-                                  mask=mask)
+# define the region that to put the maze into.
+left, top, width, height = 66, 47, 475, 297
+maze = gm.Maze(117, 73, mask=mask).scale(4).translate((69, 49))
 
-anim.pad_delay_frame(100)
-# paint the blackboard
-surface.rectangle(left, top, right - left + 1, bottom - top + 1, 0)
+# here `trans_index=1` is for compatible with eye of chrome under linux.
+# you may always use the default 0 for chrome and firefox.
+anim.pause(100, trans_index=1)
+anim.paint(left, top, width, height, 0)
+anim.pause(100)
 
-# in the first algorithm only 4 colors occur in the image, so we can use
-# a smaller minimum code length, this can help reduce the file size significantly.
-surface.set_lzw_compress(2)
+# run the maze generation algorithm.
+anim.run(wilson, maze, speed=50, delay=2, min_code_length=2,
+         cmap={0: 0, 1: 1, 2: 2}, trans_index=None, root=(0, 0))
 
-# pad one second delay, get ready!
-anim.pad_delay_frame(100)
+anim.pause(300)
+surface.save('tutorial7-1.gif')
 
-# the animation runs here.
-wilson(maze, root=(0, 0))
-
-# pad three seconds delay to see the result clearly.
-anim.pad_delay_frame(300)
-
-# now we run the maze solving algorithm.
-# this time we use full 256 colors, hence the minimum code length is 8.
-surface.set_lzw_compress(8)
-
-# the tree and wall are unchanged throughout the maze solving algorithm hence
-# it's safe to use 0 as the transparent color and color the wall and tree transparent.
-anim.set_colormap({0: 0, 1: 0, 2: 2, 3: 3})
-anim.set_control(speed=30, delay=5, trans_index=0)
+cmap = {i: max(i % 256, 3) for i in range(len(maze.cells))}
+cmap.update({0: 0, 1: 0, 2: 2})
 
 # run the maze solving algorithm.
-bfs(maze,
-    start=(0, 0),
-    end=(maze.size[0] - 1, maze.size[1] - 1))
+anim.run(bfs, maze, speed=30, delay=5, min_code_length=8, cmap=cmap,
+         trans_index=0, start=(0, 0), end=(maze.width - 1, maze.height - 1))
 
-# pad five seconds delay to see the path clearly.
-anim.pad_delay_frame(500)
+anim.pause(500)
 
-# save the result.
-surface.save('wilson_bfs.gif')
-
+surface.save('tutorial7-2.gif')
 surface.close()

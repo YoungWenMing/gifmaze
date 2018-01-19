@@ -1,8 +1,14 @@
-# -*- coding: utf-8 -*-
-
-from .maze import Maze
-from .surface import GIFSurface
-from .animation import Animation
-from . import utils
-from . import encoder
+"""
+ ________  ___  ________ _____ ______   ________  ________  _______      
+|\   ____\|\  \|\  _____\\   _ \  _   \|\   __  \|\_____  \|\  ___ \     
+\ \  \___|\ \  \ \  \__/\ \  \\\__\ \  \ \  \|\  \\|___/  /\ \   __/|    
+ \ \  \  __\ \  \ \   __\\ \  \\|__| \  \ \   __  \   /  / /\ \  \_|/__  
+  \ \  \|\  \ \  \ \  \_| \ \  \    \ \  \ \  \ \  \ /  /_/__\ \  \_|\ \ 
+   \ \_______\ \__\ \__\   \ \__\    \ \__\ \__\ \__\\________\ \_______\
+    \|_______|\|__|\|__|    \|__|     \|__|\|__|\|__|\|_______|\|_______|
+                                                                         
+"""
+from .encoder import Compression, GIFEncoder
+from .gifmaze import Maze, Renderer, GIFSurface, Animation
 from . import algorithms
+from .gentext import generate_text_mask
