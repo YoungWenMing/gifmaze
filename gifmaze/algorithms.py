@@ -152,7 +152,6 @@ def kruskal(maze, renderer, speed=30):
 
             if maze.num_changes >= speed:
                 yield renderer(maze)
-    
 
     if maze.num_changes > 0:
         yield renderer(maze)
