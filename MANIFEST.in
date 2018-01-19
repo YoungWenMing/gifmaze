@@ -1,2 +1,2 @@
-include *.txt
-recursive-include examples *.txt *.py *.png *.ttf
+include README.md LICENSE
+recursive-include examples *.py *.png *.ttf
