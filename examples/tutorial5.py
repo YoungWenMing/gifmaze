@@ -8,7 +8,7 @@ from gifmaze.algorithms import kruskal
 
 width, height = 605, 405
 surface = gm.GIFSurface(width, height, bg_color=0)
-surface.set_palette([0, 0, 0, 255, 255, 255, 0, 0, 0])
+surface.set_palette([0, 0, 0, 255, 255, 255])
 anim = gm.Animation(surface)
 
 mask = gm.generate_text_mask((width, height), 'UST', 'ubuntu.ttf', 300)

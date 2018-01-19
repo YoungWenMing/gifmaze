@@ -12,11 +12,10 @@ import gifmaze as gm
 width, height = 600, 400
 
 surface = gm.GIFSurface(width, height, bg_color=0)
-# you must specify at least one r-g-b color for this surface.
+# you must specify at least one (r, g, b) color for this surface.
 surface.set_palette([255, 0, 0])
 surface.save('surface.gif')
 surface.close()
-
 
 surface = gm.GIFSurface.from_image('teacher.png')
 surface.set_palette([0, 0, 0])

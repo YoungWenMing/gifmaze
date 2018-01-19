@@ -8,8 +8,8 @@ The delay of each frame is 1 second.
 
 The structure of the GIF file is as follows:
 
-1. Firstly the screen descriptor specify the size of the image
-    as well as the global color table.
+1. Firstly the screen descriptor which specifies the size of
+    the image as well as the global color table.
 
 2. Then the global color table.
 
