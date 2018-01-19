@@ -302,6 +302,9 @@ class GIFSurface(object):
 
 
 class Animation(object):
+    """
+    This class is the main entrance for running algorithms.
+    """
     
     def __init__(self, surface):
         self._gif_surface = surface
