@@ -1,6 +1,6 @@
 # gifmaze
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-red.svg)](https://opensource.org/licenses/MIT) [![PyPI](https://img.shields.io/pypi/pyversions/Django.svg)]()
+[![PyPI version](https://badge.fury.io/py/gifmaze.svg)](https://badge.fury.io/py/gifmaze) [![License: MIT](https://img.shields.io/badge/License-MIT-red.svg)](https://opensource.org/licenses/MIT) [![PyPI](https://img.shields.io/pypi/pyversions/Django.svg)]()
 
 <p align="center"><img src="./img/logo.gif"></p>
 
