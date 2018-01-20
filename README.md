@@ -96,7 +96,7 @@ Of course you can combine several algorithms together into one animation, for ex
 
 <p align="center"><img src="./img/dfs_astar.gif"></p>
 
-For more information please see this [blog post](https://github.com/neozhaoliang/gifmaze).
+For more information please see this [blog post](https://neozhaoliang.github.io/gifmaze/).
 
 
 ## How it works
