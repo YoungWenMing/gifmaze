@@ -12,3 +12,5 @@ install:
 script:
   - cd examples
   - for f in example*.py; do python -m unittest "$f"; done
+
+cashe: pip
