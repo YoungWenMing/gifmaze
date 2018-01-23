@@ -22,7 +22,7 @@ The structure of the GIF file is as follows:
 
 5. Finally the trailor `0X3B`.
 """
-from gifmaze import Compression, GIFEncoder
+from gifmaze import encoder
 
 # size of the image.
 width, height = 300, 300
@@ -31,25 +31,24 @@ width, height = 300, 300
 color_depth = 2
 
 # 1. the logical screen descriptor.
-screen = GIFEncoder.screen_descriptor(width, height, color_depth)
+screen = encoder.screen_descriptor(width, height, color_depth)
 
 # 2. the global color table.
 palette = bytearray([255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0])
 
 # 3. the loop control block.
-loop_control = GIFEncoder.loop_control_block(0)
+loop_control = encoder.loop_control_block(0)
 
 # 4-1. the graphics control block (delay, transpaernt)
-graphics_control = GIFEncoder.graphics_control_block(100, None)
+graphics_control = encoder.graphics_control_block(100, None)
 
 # 4-2. the image descriptor.
-descriptor = GIFEncoder.image_descriptor(0, 0, width, height)
+descriptor = encoder.image_descriptor(0, 0, width, height)
 
 # 4-3. the compressed data of each frame.
-compress = Compression(2)
 frames = []
 for i in range(3):
-    compressed_data = compress([i] * width * height)
+    compressed_data = encoder.lzw_compress([i] * width * height, mcl=2)
     frames.append(compressed_data)
 
 # 5. the trailor '0x3B'.

@@ -14,7 +14,7 @@ surface = gm.GIFSurface(width, height, bg_color=0)
 
 # define the colors of the walls and tree.
 # we use black for walls and white for the tree.
-surface.set_palette([0, 0, 0, 255, 255, 255])
+surface.set_palette('kw')
 
 # 2. define an animation environment to run the algorithm.
 anim = gm.Animation(surface)
@@ -33,9 +33,9 @@ anim.pause(200)
 # `speed` controls the speed of the animation,
 # `delay` controls the delay between successive frames,
 # `trans_index` is the transparent color index,
-# `min_code_length` is the minimum code length for encoding the animation
+# `mcl` is the minimum code length for encoding the animation
 # into frames, it's at least 2 and must satisfy
-# 2**min_code_length >= number of colors in the global color table.
+# 2**mcl >= number of colors in the global color table.
 # `start` is the starting cell for running Prim's algorithm. (it's a cell,
 # not a pixel).
 # `cmap` controls how the cells are mapped to colors, i.e. {cell: color}.
@@ -43,7 +43,7 @@ anim.pause(200)
 # with the 0-indexed color (black), cells have value 1 (the tree) are colored
 # with the 1-indexed color (white).
 anim.run(prim, maze, speed=30, delay=5, trans_index=None,
-         cmap={0: 0, 1: 1}, min_code_length=2, start=(0, 0))
+         cmap={0: 0, 1: 1}, mcl=2, start=(0, 0))
 
 # pause five seconds to see the result clearly.
 anim.pause(500)

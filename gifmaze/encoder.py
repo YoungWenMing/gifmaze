@@ -4,16 +4,18 @@
 A simple GIF encoder
 ~~~~~~~~~~~~~~~~~~~~
 
-Structure of a GIF file: (in the order they appear)
+Structure of a GIF file: (in the order they appear in the file)
     1. always begins with the logical screen descriptor.
     2. then follows the global color table.
-    3. then follows the loop control block (specify the number of loops).
+    3. then follows the loop control block (specify the number of loops),
+       for static images this block is not necessary.
     4. then follows the image data of the frames,
-       each frame is further divided into:
+       each frame can be further divided into:
        (i) a graphics control block that specify the delay and
-           transparent color of this frame.
+           transparent color of this frame. For static frames this
+           block is not needed.
        (ii) the image descriptor.
-       (iii) the LZW encoded data.
+       (iii) the LZW compressed pixel data.
     5. finally the trailor '0x3B'.
 
 Reference for the GIF89a specification:
@@ -21,6 +23,99 @@ Reference for the GIF89a specification:
     http://giflib.sourceforge.net/whatsinagif/index.html
 """
 from struct import pack
+
+
+__all__ = ['screen_descriptor', 'loop_control_block', 'graphics_control_block',
+           'image_descriptor', 'rectangle', 'pause', 'parse_image', 'lzw_compress'
+          ]
+
+
+def screen_descriptor(width, height, color_depth):
+    """
+    This block specifies both the size of the image and its global color table.
+    """
+    byte = 0b10000000 | (color_depth - 1) | (color_depth - 1) << 4
+    return pack('<6s2H3B', b'GIF89a', width, height, byte, 0, 0)
+
+
+def loop_control_block(loop):
+    """
+    This block specifies the number of loops (0 means loop infinitely).
+    """
+    return pack('<3B8s3s2BHB', 0x21, 0xFF, 11, b'NETSCAPE', b'2.0', 3, 1, loop, 0)
+
+
+def graphics_control_block(delay, trans_index=None):
+    """
+    This block specifies the delay and transparent color of the coming frame.
+    `trans_index=None` means there is no transparent color in this frame.
+    For static frames this block is not needed.
+    """
+    if trans_index is None:
+        return pack("<4BH2B", 0x21, 0xF9, 4, 0b00000100, delay, 0, 0)
+    else:
+        return pack("<4BH2B", 0x21, 0xF9, 4, 0b00000101, delay, trans_index, 0)
+    
+
+def image_descriptor(left, top, width, height, byte=0):
+    """
+    This block specifies the position of the coming frame (relative to the window)
+    and whether it has a local color table or not.
+    """
+    return pack('<B4HB', 0x2C, left, top, width, height, byte)
+
+
+def rectangle(left, top, width, height, color):
+    """
+    A rectangle painted with a given color.
+    """
+    descriptor = image_descriptor(left, top, width, height)
+    data = lzw_compress([color] * width * height, mcl=2)
+    return descriptor + data
+
+
+def pause(delay, trans_index=0):
+    """
+    A 1x1 invisible frame that can be used for padding delay time
+    in an animation.
+    """
+    control = graphics_control_block(delay, trans_index)
+    pixel1x1 = rectangle(0, 0, 1, 1, trans_index)
+    return control + pixel1x1
+
+
+def parse_image(img):
+    """
+    Parse a gif image and get its palette and LZW compressed pixel data.
+    `image` must be an instance of `PIL.Image.Image` class and of the .gif format.
+    """
+    data = list(img.getdata())
+    colors = []
+    indices = []
+    count = 0
+
+    for c in data:
+        if c not in colors:
+            colors.append(c)
+            indices.append(count)
+            count += 1
+        else:
+            i = colors.index(c)
+            indices.append(i)
+
+    palette = []
+    for c in colors:
+        palette += c
+            
+    # here we do not bother about how many colors are actually in the image,
+    # we simply use full 256 colors.
+    if len(palette) < 3 * 256:
+        palette += [0] * (3 * 256 - len(palette))
+
+    descriptor = image_descriptor(0, 0, img.size[0], img.size[1], 0b10000111)
+    compressed_data = lzw_compress(indices, mcl=8)
+    return descriptor + bytearray(palette) + compressed_data
+
 
 
 class DataBlock(object):
@@ -50,7 +145,7 @@ class DataBlock(object):
             if len(self._bitstream) * 8 == self._nbits:
                 self._bitstream.append(0)
             if digit == '1':
-                self._bitstream[-1] |= 1 << self._nbits % 8
+                self._bitstream[-1] |= 1 << (self._nbits % 8)
             self._nbits += 1
 
     def dump_bytes(self):
@@ -74,165 +169,62 @@ class DataBlock(object):
         self._bitstream = bytearray()
         return bytestream
 
-
-class Compression(object):
-    """
-    Each instance of this class is a function that implements the
-    Lempel-Ziv-Welch compression algorithm used by the GIF89a specification.
-    """
-
-    def __init__(self, min_code_length):
-        """
-        min_code_length: an integer between 2 and 12.
-
-        GIF allows the minimum code length as small as 2 and as large as 12.
-        Even there are only two colors, the minimum code length must be at least 2.
-
-        Note this is not actually the smallest code length that is used
-        in the encoding process since the minimum code length tells us
-        how many bits are needed just for the different colors of the image,
-        we still have to account for the two special codes `end` and `clear`.
-        Therefore the actual smallest code length that will be used is one more
-        than `min_code_length`.
-        """
-        if not isinstance(min_code_length, int) \
-        and not 2 <= min_code_length <= 12:
-            raise ValueError('Invalid minimum code length.')
-
-        self._stream = DataBlock()
-        self._min_code_length = min_code_length
-        self._clear_code = 1 << min_code_length
-        self._end_code = self._clear_code + 1
-        self._max_codes = 4096
-
-    def __call__(self, input_data):
-        """
-        input_data: a 1-d list consists of integers in range [0, 255],
-            these integers are the indices of the colors of the pixels
-            in the global color table.
-
-        We do not check the validity of the input data here for efficiency.
-        """
-        # this is actually the minimum code length used
-        code_length = self._min_code_length + 1
-        next_code = self._end_code + 1
-        # the default initial dict
-        code_table = {(i,): i for i in range(1 << self._min_code_length)}
-        # output the clear code
-        self._stream.encode_bits(self._clear_code, code_length)
-
-        pattern = tuple()
-        for c in input_data:
-            pattern += (c,)
-            if pattern not in code_table:
-                # add new code to the table
-                code_table[pattern] = next_code
-                # output the prefix
-                self._stream.encode_bits(code_table[pattern[:-1]], code_length)
-                pattern = (c,)  # suffix becomes the current pattern
-
-                next_code += 1
-                if next_code == 2**code_length + 1:
-                    code_length += 1
-                if next_code == self._max_codes:
-                    next_code = self._end_code + 1
-                    self._stream.encode_bits(self._clear_code, code_length)
-                    code_length = self._min_code_length + 1
-                    code_table = {(i,): i for i in range(1 << self._min_code_length)}
-
-        self._stream.encode_bits(code_table[pattern], code_length)
-        self._stream.encode_bits(self._end_code, code_length)
-        return bytearray([self._min_code_length]) + self._stream.dump_bytes() + bytearray([0])
-
-
-class GIFEncoder(object):
-    """
-    This class contains several methods for encoding GIF files.
-    """
     
-    @staticmethod
-    def screen_descriptor(width, height, color_depth):
-        """
-        This block specifies both the size of the image and its global color table.
-        """
-        byte = 0b10000000 | (color_depth - 1) | (color_depth - 1) << 4
-        return pack('<6s2H3B', b'GIF89a', width, height, byte, 0, 0)
-  
-    @staticmethod
-    def loop_control_block(loop):
-        """
-        This block specifies the number of loops (0 means loop infinitely).
-        """
-        return pack('<3B8s3s2BHB', 0x21, 0xFF, 11, b'NETSCAPE', b'2.0', 3, 1, loop, 0)
+stream = DataBlock()
+
+
+def lzw_compress(input_data, mcl):
+    """
+    The Lempel-Ziv-Welch compression algorithm used in the GIF89a specification.
     
-    @staticmethod
-    def graphics_control_block(delay, trans_index=None):
-        """
-        This block specifies the delay and transparent color of the coming frame.
-        `trans_index=None` means no transparent color.
-        For static frames this block is not needed.
-        """
-        if trans_index is None:
-            return pack("<4BH2B", 0x21, 0xF9, 4, 0b00000100, delay, 0, 0)
-        else:
-            return pack("<4BH2B", 0x21, 0xF9, 4, 0b00000101, delay, trans_index, 0)
+    `input_data`: a 1-d list consists of integers in range [0, 255],
+         these integers are the indices of the colors of the pixels
+         in the global color table. We do not check the validity of
+         this input data here for efficiency.
+
+    `mcl`: minimum code length for compression, it's an integer between 2 and 12.
+
+    GIF allows the minimum code length as small as 2 and as large as 12.
+    Even there are only two colors, the minimum code length must be at least 2.
+
+    Note this is not actually the smallest code length that is used
+    in the encoding process since the minimum code length tells us
+    how many bits are needed just for the different colors of the image,
+    we still have to account for the two special codes `end` and `clear`.
+    Therefore the actual smallest code length that will be used is one more
+    than `mcl`.
+    """
+    clear_code = (1 << mcl)
+    end_code = clear_code + 1
+    max_codes = 4096
     
-    @staticmethod
-    def image_descriptor(left, top, width, height, byte=0):
-        """
-        This block specifies the position of the coming frame (relative to the window)
-        and whether it has a local color table or not.
-        """
-        return pack('<B4HB', 0x2C, left, top, width, height, byte)
+    code_length = mcl + 1
+    next_code = end_code + 1       
+    # the default initial dict
+    code_table = {(i,): i for i in range(1 << mcl)}        
+    # output the clear code
+    stream.encode_bits(clear_code, code_length)
+        
+    pattern = tuple()
+    for c in input_data:
+        pattern += (c,)
+        if pattern not in code_table:
+            # add new code to the table
+            code_table[pattern] = next_code
+            # output the prefix
+            stream.encode_bits(code_table[pattern[:-1]], code_length)
+            pattern = (c,)  # suffix becomes the current pattern
 
-    @classmethod
-    def rectangle(cls, left, top, width, height, color):
-        """
-        A rectangle painted with a given color.
-        """
-        descriptor = cls.image_descriptor(left, top, width, height)
-        data = Compression(2)([color] * width * height)
-        return descriptor + data
-    
-    @classmethod
-    def pause(cls, delay, trans_index):
-        """
-        A 1x1 invisible frame that can be used for padding delay time
-        in an animation.
-        """
-        control = cls.graphics_control_block(delay, trans_index)
-        pixel1x1 = cls.rectangle(0, 0, 1, 1, trans_index)
-        return control + pixel1x1
-
-    @classmethod
-    def parse_image(cls, img):
-        """
-        Parse a gif image and get its palette and pixels. `image` must be an instance of
-        PIL.Image.Image class and of the .gif format.
-        """
-        data = list(img.getdata())
-        colors = []
-        indices = []
-        count = 0
-
-        for c in data:
-            if c not in colors:
-                colors.append(c)
-                indices.append(count)
-                count += 1
-            else:
-                i = colors.index(c)
-                indices.append(i)
-
-        palette = []
-        for c in colors:
-            palette += c
-            
-        # here we do not bother about how many colors are actually in the image,
-        # we simply use full 256 colors.
-        if len(palette) < 3 * 256:
-            palette += [0] * (3 * 256 - len(palette))
-
-        descriptor = cls.image_descriptor(0, 0, img.size[0], img.size[1], 0b10000111)
-        compressed_data = Compression(8)(indices)
-        return descriptor + bytearray(palette) + compressed_data
+            next_code += 1
+            if next_code == 2**code_length + 1:
+                code_length += 1
+                
+            if next_code == max_codes:
+                next_code = end_code + 1
+                stream.encode_bits(clear_code, code_length)
+                code_length = mcl + 1
+                code_table = {(i,): i for i in range(1 << mcl)}
+                    
+    stream.encode_bits(code_table[pattern], code_length)
+    stream.encode_bits(end_code, code_length)
+    return bytearray([mcl]) + stream.dump_bytes() + bytearray([0])

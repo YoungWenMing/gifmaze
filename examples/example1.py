@@ -19,7 +19,7 @@ It contains:
 
 The loop control block and graphics control block are not needed.
 """
-from gifmaze import Compression, GIFEncoder
+from gifmaze import encoder
 
 # size of the image.
 width, height = 100, 100
@@ -29,16 +29,16 @@ width, height = 100, 100
 color_depth = 1
 
 # 1. the logical screen descriptor.
-screen = GIFEncoder.screen_descriptor(width, height, color_depth)
+screen = encoder.screen_descriptor(width, height, color_depth)
 
 # 2. the global color table, here it contains two colors: red and black.
 palette = bytearray([255, 0, 0, 0, 0, 0])
 
 # 3-1. the image descriptor of the frame.
-descriptor = GIFEncoder.image_descriptor(0, 0, width, height)
+descriptor = encoder.image_descriptor(0, 0, width, height)
 
 # 3-2. the LZW compressed pixel data.
-data = Compression(2)([0] * width * height)
+data = encoder.lzw_compress([0] * width * height, mcl=2)
 
 # 4. the trailor '0x3B'.
 trailor = bytearray([0x3B])

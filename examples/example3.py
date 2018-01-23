@@ -13,7 +13,7 @@ width, height = 600, 400
 
 surface = gm.GIFSurface(width, height, bg_color=0)
 # you must specify at least one (r, g, b) color for this surface.
-surface.set_palette([255, 0, 0])
+surface.set_palette('r')
 surface.save('surface.gif')
 surface.close()
 

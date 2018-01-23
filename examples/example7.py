@@ -35,7 +35,7 @@ anim.paint(left, top, width, height, 0)
 anim.pause(100)
 
 # run the maze generation algorithm.
-anim.run(wilson, maze, speed=50, delay=2, min_code_length=2,
+anim.run(wilson, maze, speed=50, delay=2, mcl=2,
          cmap={0: 0, 1: 1, 2: 2}, trans_index=None, root=(0, 0))
 
 anim.pause(300)
@@ -45,7 +45,7 @@ cmap = {i: max(i % 256, 3) for i in range(len(maze.cells))}
 cmap.update({0: 0, 1: 0, 2: 2})
 
 # run the maze solving algorithm.
-anim.run(bfs, maze, speed=30, delay=5, min_code_length=8, cmap=cmap,
+anim.run(bfs, maze, speed=30, delay=5, mcl=8, cmap=cmap,
          trans_index=0, start=(0, 0), end=(maze.width - 1, maze.height - 1))
 
 anim.pause(500)

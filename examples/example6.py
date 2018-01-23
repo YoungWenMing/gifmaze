@@ -11,7 +11,7 @@ from gifmaze.algorithms import random_dfs, bfs
 width, height = 605, 405
 surface = gm.GIFSurface(width, height, bg_color=0)
 
-palette = [0, 0, 0, 200, 200, 200, 255, 0, 255]
+palette = [0, 0, 0, 255, 255, 255, 255, 0, 255]
 for i in range(256):
     rgb = hls_to_rgb((i / 360.0) % 1, 0.5, 1.0)
     palette += [int(round(255 * x)) for x in rgb]
@@ -26,7 +26,7 @@ maze = gm.Maze(119, 79, mask=mask).scale(5).translate((5, 5))
 anim.pause(200)
 
 # run the maze generation algorithm.
-anim.run(random_dfs, maze, speed=15, delay=5, min_code_length=2,
+anim.run(random_dfs, maze, speed=15, delay=5, mcl=2,
          cmap={0: 0, 1: 1, 2: 2, 3: 3}, trans_index=None, start=(0, 0))
 
 # pause three seconds to see the result clearly.
@@ -41,7 +41,7 @@ surface.save('tutorial6-1.gif')
 # The idea is to map the values of the cells into range 0-255.
 cmap = {i: max(i % 256, 3) for i in range(len(maze.cells))}
 cmap.update({0: 0, 1: 0, 2: 2})
-anim.run(bfs, maze, speed=30, delay=5, min_code_length=8, cmap=cmap,
+anim.run(bfs, maze, speed=30, delay=5, mcl=8, cmap=cmap,
          trans_index=0, start=(0, 0), end=(maze.width - 1, maze.height - 1))
 
 # pause five seconds to see the path clearly.

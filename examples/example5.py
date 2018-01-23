@@ -16,7 +16,7 @@ maze = gm.Maze(119, 79, mask=mask).scale(5).translate((5, 5))
 
 anim.pause(200)
 anim.run(kruskal, maze, speed=30, delay=5, trans_index=None,
-         min_code_length=2, cmap={0: 0, 1: 1})
+         mcl=2, cmap={0: 0, 1: 1})
 anim.pause(500)
 
 surface.save('tutorial5.gif')

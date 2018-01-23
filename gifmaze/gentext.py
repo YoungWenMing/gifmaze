@@ -7,6 +7,11 @@ def generate_text_mask(size, text, fontfile, fontsize):
     """
     This function helps you generate a black-white image with text
     in it so that it can be used as the mask image in the program.
+    The black pixels are considered as 'blocked' and white pixels
+    are considered as 'connective'.
+    
+    Important: this mask must preserve the connectivity of the graph,
+    otherwise the program will not terminate.
 
     ----------
     Parameters
