@@ -9,7 +9,7 @@ from gifmaze.maze import Maze
 def prim(maze, render, speed=30, start=(0, 0)):
     """Maze by Prim's algorithm."""
     bar = tqdm(total=len(maze.cells) - 1, desc="Running Prim's algorithm")
-    
+
     queue = [(random.random(), start, v) for v in maze.get_neighbors(start)]
     maze.mark_cell(start, Maze.TREE)
 

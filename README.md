@@ -82,7 +82,8 @@ git clone https://github.com/neozhaoliang/gifmaze gifmaze && cd gifmaze && pytho
     + `delay`: controls the delay between successive frames.
     + `trans_index`: the transparent color index.
     + `cmap`: controls how the cells are mapped to colors. Here `cmap={0: 0, 1: 1}` means the cells of state 0 (the walls) are colored with the 0-th color (black), cells of state 1 (the tree) are colored with the 1-th color (white).
-    + `mcl`: the minimum code length for initializing the LZW compression.
+    + `mcl`: the minimum code length for initializing the LZW compression.
+
 4. Finally we save the image and finish the animation by
 
     ```python

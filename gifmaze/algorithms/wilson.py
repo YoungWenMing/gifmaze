@@ -28,7 +28,7 @@ def wilson(maze, render, speed=50, root=(0, 0)):
         maze.mark_path(path[index:], Maze.WALL)
         maze.mark_cell(path[index], Maze.PATH)
         return path[:index+1]
-    
+
     # initially the tree contains only the root.
     maze.mark_cell(root, Maze.TREE)
 

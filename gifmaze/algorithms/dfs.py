@@ -34,6 +34,6 @@ def dfs(maze, render, speed=20, start=(0, 0), end=(80, 60)):
     while v != start:
         v = came_from[v]
         path.append(v)
-        
+
     maze.mark_path(path, Maze.PATH)
     yield render(maze)

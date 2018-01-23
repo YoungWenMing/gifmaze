@@ -55,7 +55,7 @@ def graphics_control_block(delay, trans_index=None):
         return pack("<4BH2B", 0x21, 0xF9, 4, 0b00000100, delay, 0, 0)
     else:
         return pack("<4BH2B", 0x21, 0xF9, 4, 0b00000101, delay, trans_index, 0)
-    
+
 
 def image_descriptor(left, top, width, height, byte=0):
     """
@@ -106,7 +106,7 @@ def parse_image(img):
     palette = []
     for c in colors:
         palette += c
-            
+
     # here we do not bother about how many colors are actually in the image,
     # we simply use full 256 colors.
     if len(palette) < 3 * 256:
@@ -169,14 +169,14 @@ class DataBlock(object):
         self._bitstream = bytearray()
         return bytestream
 
-    
+
 stream = DataBlock()
 
 
 def lzw_compress(input_data, mcl):
     """
     The Lempel-Ziv-Welch compression algorithm used in the GIF89a specification.
-    
+
     `input_data`: a 1-d list consists of integers in range [0, 255],
          these integers are the indices of the colors of the pixels
          in the global color table. We do not check the validity of
@@ -197,14 +197,14 @@ def lzw_compress(input_data, mcl):
     clear_code = (1 << mcl)
     end_code = clear_code + 1
     max_codes = 4096
-    
+
     code_length = mcl + 1
-    next_code = end_code + 1       
+    next_code = end_code + 1
     # the default initial dict
-    code_table = {(i,): i for i in range(1 << mcl)}        
+    code_table = {(i,): i for i in range(1 << mcl)}
     # output the clear code
     stream.encode_bits(clear_code, code_length)
-        
+
     pattern = tuple()
     for c in input_data:
         pattern += (c,)
@@ -218,13 +218,13 @@ def lzw_compress(input_data, mcl):
             next_code += 1
             if next_code == 2**code_length + 1:
                 code_length += 1
-                
+
             if next_code == max_codes:
                 next_code = end_code + 1
                 stream.encode_bits(clear_code, code_length)
                 code_length = mcl + 1
                 code_table = {(i,): i for i in range(1 << mcl)}
-                    
+
     stream.encode_bits(code_table[pattern], code_length)
     stream.encode_bits(end_code, code_length)
     return bytearray([mcl]) + stream.dump_bytes() + bytearray([0])

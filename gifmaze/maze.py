@@ -142,7 +142,7 @@ class Maze(object):
     def scale(self, c):
         self.scaling = c
         return self
-        
+
     def translate(self, v):
         self.translation = v
         return self

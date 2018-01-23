@@ -5,4 +5,3 @@ from .kruskal import kruskal
 from .dfs import dfs
 from .bfs import bfs
 from .astar import astar
-

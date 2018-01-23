@@ -21,22 +21,22 @@ class GIFSurface(object):
         """
         ----------
         Parameters
-        
+
         width, height: size of the image in pixels.
-        
+
         loop: number of loops of the image.
-        
+
         bg_color: background color index.
         """
         self.width = width
-        self.height = height 
+        self.height = height
         self.loop = loop
         self.palette = None
         self._io = BytesIO()
-      
+
         if bg_color is not None:
             self.write(encoder.rectangle(0, 0, width, height, bg_color))
-            
+
     @classmethod
     def from_image(cls, img_file, loop=0):
         """
@@ -50,12 +50,12 @@ class GIFSurface(object):
             Image.open(img_file).convert('RGB').save(temp_io, format='gif')
             img = Image.open(temp_io).convert('RGB')
             surface = cls(img.size[0], img.size[1], loop=loop)
-            surface.write(encoder.parse_image(img))           
+            surface.write(encoder.parse_image(img))
         return surface
-            
+
     def write(self, data):
         self._io.write(data)
-        
+
     def set_palette(self, palette):
         """
         Set the global color table of the GIF image.
@@ -63,7 +63,7 @@ class GIFSurface(object):
         """
         if isinstance(palette, str):
             palette = self._from_str_colors(palette)
-        
+
         try:
             palette = bytearray(palette)
         except:
@@ -81,7 +81,7 @@ class GIFSurface(object):
             palette.extend([0] * (valid_len - len(palette)))
 
         self.palette = palette
-        
+
     def _from_str_colors(self, string):
         """Turn a string of colors into a 1-d list."""
         named_colors = {'k': [0, 0, 0],
@@ -97,7 +97,7 @@ class GIFSurface(object):
         for s in string:
             if s in named_colors:
                 result.extend(named_colors[s])
-        
+
         return result
 
     @property
@@ -108,7 +108,7 @@ class GIFSurface(object):
         """
         if self.palette is None:
             raise ValueError('Missing global color table.')
-        
+
         color_depth = (len(self.palette) // 3).bit_length() - 1
         screen = encoder.screen_descriptor(self.width, self.height, color_depth)
         loop = encoder.loop_control_block(self.loop)
@@ -122,7 +122,7 @@ class GIFSurface(object):
             f.write(self._gif_header)
             f.write(self._io.getvalue())
             f.write(bytearray([0x3B]))
-            
+
     def close(self):
         self._io.close()
 

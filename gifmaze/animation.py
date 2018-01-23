@@ -15,9 +15,9 @@ class Render(object):
     def __init__(self, cmap, mcl):
         """
         cmap: a dict that maps the value of the cells to their color indices.
-        
+
         mcl: the minimum code length for the LZW compression.
-        
+
         A default dict is initialized so that one can set the colormap by
         just specifying what needs to be specified.
         """
@@ -30,7 +30,7 @@ class Render(object):
         """
         Encode current maze into one frame and return the encoded data.
         Note the graphics control block is not added here.
-        """        
+        """
         # the image descriptor
         if maze.frame_box is not None:
             left, top, right, bottom = maze.frame_box
@@ -58,27 +58,27 @@ class Render(object):
         data = self.compress(get_frame_pixels())
         # clear `num_changes` and `frame_box`
         maze.reset()
-        
+
         return descriptor + data
-    
+
 
 class Animation(object):
     """
     This class is the main entrance for calling algorithms to
     run and rendering the maze into the image.
     """
-    
+
     def __init__(self, surface):
         self._gif_surface = surface
-        
+
     def pause(self, delay, trans_index=0):
         """Pause the animation by padding a 1x1 invisible frame."""
         self._gif_surface.write(encoder.pause(delay, trans_index))
-        
+
     def paint(self, *args):
         """Paint a rectangular region in the surface."""
         self._gif_surface.write(encoder.rectangle(*args))
-        
+
     def run(self, algo, maze, delay=5, trans_index=None,
             cmap=None, mcl=8, **kwargs):
         """
@@ -89,7 +89,7 @@ class Animation(object):
 
 
         algo: name of the algorithm.
-        
+
         maze: an instance of the `Maze` class.
 
         delay: delay time between successive frames.

@@ -19,7 +19,7 @@ def random_dfs(maze, render, speed=10, start=(0, 0)):
         maze.mark_cell(child, Maze.TREE)
         maze.mark_space(parent, child, Maze.TREE)
         bar.update(1)
-        
+
         neighbors = maze.get_neighbors(child)
         random.shuffle(neighbors)
         for v in neighbors:
