@@ -6,6 +6,9 @@ python:
   - "3.5"
   - "3.6"
   
+install:
+  - pip install -r requirements.txt
+
 script:
   - cd examples
   - for f in example*.py; do python -m unittest "$f"; done
