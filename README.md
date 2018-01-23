@@ -107,8 +107,6 @@ The most tricky part when implementing this program is that, even for a 2-D grid
 
 3. Write the frames to the file as quickly as possible. This is accomplished by writing them to a in-memory io file first and then flush the data to disk all at once.
 
-Of course you must know how the GIF specifcation works before you could truly understand the code, I will discuss this in the next section.
-
 
 ## References
 
