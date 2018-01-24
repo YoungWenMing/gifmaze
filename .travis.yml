@@ -11,6 +11,6 @@ install:
   - pip install gifmaze
 
 script:
-  - cd examples; for f in example*.py; do python -m unittest "$f"; done
+  - cd examples; for f in example*.py; do python "$f"; done
 
 cashe: pip
