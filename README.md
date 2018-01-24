@@ -2,7 +2,7 @@
 
 # GIFMaze
 
-[![PyPI version](https://badge.fury.io/py/gifmaze.svg)](https://badge.fury.io/py/gifmaze) [![License: MIT](https://img.shields.io/badge/License-MIT-red.svg)](https://opensource.org/licenses/MIT) [![PyPI](https://img.shields.io/pypi/pyversions/pytest.svg)]()
+[![Build Status](https://travis-ci.org/neozhaoliang/gifmaze.svg?branch=master)](https://travis-ci.org/neozhaoliang/gifmaze) [![PyPI version](https://badge.fury.io/py/gifmaze.svg)](https://badge.fury.io/py/gifmaze) [![License: MIT](https://img.shields.io/badge/License-MIT-red.svg)](https://opensource.org/licenses/MIT) [![PyPI](https://img.shields.io/pypi/pyversions/pytest.svg)]()
 
 
 ## What's cool
