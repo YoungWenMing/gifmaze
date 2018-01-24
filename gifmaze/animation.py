@@ -44,18 +44,13 @@ class Render(object):
                                               maze.scaling * width,
                                               maze.scaling * height)
 
-        # A generator that yields the pixels of this frame. This may look a bit unintuitive
-        # because encoding frames will be called thousands of times in an animation and
-        # we should avoid creating and destroying a new list each time it's called.
-        def get_frame_pixels():
-            for i in range(width * height * maze.scaling * maze.scaling):
-                y = i // (width * maze.scaling * maze.scaling)
-                x = (i % (width * maze.scaling)) // maze.scaling
-                val = maze.get_cell((x + left, y + top))
-                yield self.colormap[val]
+        pixels = [self.colormap[maze.get_cell((x // maze.scaling + left,
+                                               y // maze.scaling + top))] \
+                  for y in range(height * maze.scaling) \
+                  for x in range(width * maze.scaling)]
 
         # the compressed image data of this frame
-        data = self.compress(get_frame_pixels())
+        data = self.compress(pixels)
         # clear `num_changes` and `frame_box`
         maze.reset()
 
