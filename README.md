@@ -103,9 +103,7 @@ The most tricky part when implementing this program is that, even for a 2-D grid
 
 1. Find a way to reduce the file size. This is accomplished by maintaining a rectangular region that holds the size and position of current frame and allowing variable mimimum code length for the LZW compression.
 
-2. Make the encoding process as efficient as possible. This is accomplished by using a generator to yield the pixels of the frame instead of repetitively creating/deleting new lists to hold the pixels and send them to the encoder.
-
-3. Write the frames to the file as quickly as possible. This is accomplished by writing them to a in-memory io file first and then flush the data to disk all at once.
+2. Write the frames to the file as quickly as possible. This is accomplished by writing them to a in-memory io file first and then flush the data to disk all at once.
 
 
 ## References
