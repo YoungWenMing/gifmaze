@@ -33,6 +33,8 @@ git clone https://github.com/neozhaoliang/gifmaze gifmaze && cd gifmaze && pytho
 
 1. It's written in pure Python, no third-party libs/softwares are required, only built-in modules! (If you want to embed the animation into another image, then `PIL` is required, which is not built-in but comes with all Python distributions, that's all!)
 
+    **update**: I have added the `tqdm` module to show the process bar, which can be installed via `pip install tqdm`.
+
 2. It runs very fast and generates optimized GIF files in a few seconds. Usually the output file contains more than one thousand frames but the file size is only around a few hundreds of KBs.
 
 3. You can make GIF animations of all kinds of maze generation and maze solving algorithms on the 2-D grid. 
