@@ -19,7 +19,7 @@ for i in range(256):
 surface.set_palette(palette)
 
 anim = gm.Animation(surface)
-mask = gm.generate_text_mask((width, height), 'UST', 'ubuntu.ttf', 300)
+mask = gm.generate_text_mask((width, height), 'NUST', 'ubuntu.ttf', 300)
 maze = gm.Maze(119, 79, mask=mask).scale(5).translate((5, 5))
 
 # pause two seconds, get ready!
