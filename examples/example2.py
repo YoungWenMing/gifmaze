@@ -60,7 +60,7 @@ data = bytearray()
 for frame in frames:
     data += graphics_control + descriptor + frame
 
-with open('tutorial2.gif', 'wb') as f:
+with open('example2_loop.gif', 'wb') as f:
     f.write(screen
             + palette
             + loop_control

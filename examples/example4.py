@@ -49,5 +49,5 @@ anim.run(prim, maze, speed=30, delay=5, trans_index=None,
 anim.pause(500)
 
 # 5. save the result.
-surface.save('tutorial4.gif')
+surface.save('example4_simple_anim.gif')
 surface.close()

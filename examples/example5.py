@@ -19,5 +19,5 @@ anim.run(kruskal, maze, speed=30, delay=5, trans_index=None,
          mcl=2, cmap={0: 0, 1: 1})
 anim.pause(500)
 
-surface.save('tutorial5.gif')
+surface.save('example5_anim_with_mask.gif')
 surface.close()

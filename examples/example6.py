@@ -31,7 +31,7 @@ anim.run(random_dfs, maze, speed=15, delay=5, mcl=2,
 
 # pause three seconds to see the result clearly.
 anim.pause(300)
-surface.save('tutorial6-1.gif')
+surface.save('example6-algo-1.gif')
 
 # run the maze solving algorithm.
 # the tree and wall are unchanged throughout the maze solving algorithm hence
@@ -48,5 +48,5 @@ anim.run(bfs, maze, speed=30, delay=5, mcl=8, cmap=cmap,
 anim.pause(500)
 
 # save the result.
-surface.save('tutorial6-2.gif')
+surface.save('example6-algo_2.gif')
 surface.close()

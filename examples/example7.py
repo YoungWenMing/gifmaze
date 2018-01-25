@@ -39,7 +39,7 @@ anim.run(wilson, maze, speed=50, delay=2, mcl=2,
          cmap={0: 0, 1: 1, 2: 2}, trans_index=None, root=(0, 0))
 
 anim.pause(300)
-surface.save('tutorial7-1.gif')
+surface.save('example7-algo-1.gif')
 
 cmap = {i: max(i % 256, 3) for i in range(len(maze.cells))}
 cmap.update({0: 0, 1: 0, 2: 2})
@@ -50,5 +50,5 @@ anim.run(bfs, maze, speed=30, delay=5, mcl=8, cmap=cmap,
 
 anim.pause(500)
 
-surface.save('tutorial7-2.gif')
+surface.save('example7-algo-2.gif')
 surface.close()

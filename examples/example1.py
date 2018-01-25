@@ -44,7 +44,7 @@ data = encoder.lzw_compress([0] * width * height, mcl=2)
 trailor = bytearray([0x3B])
 
 # put them together.
-with open('tutorial1.gif', 'wb') as f:
+with open('example1_static_image.gif', 'wb') as f:
     f.write(screen
             + palette
             + descriptor
